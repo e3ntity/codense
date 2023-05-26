@@ -12,6 +12,7 @@ program
   .version(packageJson.version)
   .description(packageJson.description)
   .option("-c, --clipboard", "Copy output to clipboard")
+  .option("--print-omitted", "Print omitted files")
   .arguments("<dir>")
   .action(function (dir) {
     program.dir = dir;
@@ -30,16 +31,8 @@ const contentDelimiter = "`".repeat(3);
 const main = async () => {
   const dir = program.dir;
 
-  // Load which files to ignore
-  let ig = ignore();
-
-  const gitignorePath = path.join(dir, ".gitignore");
-  if (fs.existsSync(gitignorePath)) ig = ig.add(fs.readFileSync(gitignorePath).toString().split("\n"));
-
-  const codenseignorePath = path.join(dir, ".codenseignore");
-  if (fs.existsSync(codenseignorePath)) ig = ig.add(fs.readFileSync(codenseignorePath).toString().split("\n"));
-
-  [output, fileCount] = await traverse(dir, ig);
+  const ig = ignore();
+  const [output, fileCount] = await traverse(dir, ig);
 
   if (options.clipboard) {
     clipboardy.writeSync(output);
@@ -50,6 +43,27 @@ const main = async () => {
 };
 
 /**
+ * Add ignore rules from .gitignore and .codenseignore
+ * @param {string} dir Directory to add ignore rules from
+ * @param {ignore.Ignore} ig Ignore object
+ * @returns {ignore.Ignore} Ignore object with rules added
+ */
+const addIgnoreRules = (dir, ig) => {
+  const gitignorePath = path.join(dir, ".gitignore");
+  const codenseignorePath = path.join(dir, ".codenseignore");
+
+  let rules = [];
+
+  if (fs.existsSync(gitignorePath)) rules = [...rules, ...fs.readFileSync(gitignorePath).toString().split("\n")];
+  if (fs.existsSync(codenseignorePath))
+    rules = [...rules, ...fs.readFileSync(codenseignorePath).toString().split("\n")];
+
+  ig = ig.add(rules.map((rule) => path.join(path.relative(program.dir, dir), rule)));
+
+  return ig;
+};
+
+/**
  * Traverse a directory and summarize all files
  * @param {string} dir Directory to traverse
  * @param {ignore.Ignore} ig Ignore object
@@ -57,37 +71,46 @@ const main = async () => {
  * @returns {Promise<void>} Promise that resolves when all files have been summarized
  */
 const traverse = async (dir, ig, baseDir = dir) => {
-  const files = fs.readdirSync(dir);
-
   let output = "";
   let fileCount = 0;
 
+  ig = addIgnoreRules(dir, ig);
+
+  const files = fs.readdirSync(dir);
   for (let i = 0; i < files.length; i++) {
     const filename = files[i];
     const filePath = path.join(dir, filename);
     const relativeFilePath = path.relative(baseDir, filePath);
 
-    if (ig.ignores(relativeFilePath)) continue;
+    if (ig.ignores(relativeFilePath)) {
+      output += options.printOmitted ? `Omitted ${relativeFilePath}\n` : "";
+      continue;
+    }
 
-    const stats = fs.statSync(filePath);
-
-    if (stats.isDirectory()) {
+    if (fs.statSync(filePath).isDirectory()) {
       const [subOutput, subFileCount] = await traverse(filePath, ig, baseDir);
+
       output += subOutput;
       fileCount += subFileCount;
     } else {
       let summary;
+
       try {
         summary = await summarize(filePath, baseDir);
       } catch (err) {
         console.error(`Error summarizing ${relativeFilePath}: ${err}`);
         process.exit(1);
       }
+
+      if (summary.match(/[^\x00-\x7F]/g)) {
+        console.error(`Error summarizing ${relativeFilePath}: Summary contains non-ASCII characters!`);
+        process.exit(1);
+      }
+
       output += summary;
       fileCount += 1;
     }
   }
-
   return [output, fileCount];
 };
 
