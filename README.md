@@ -50,18 +50,6 @@ Attention: You will have to add both `.gitignore` and `.codenseignore` to your `
 .codenseignore
 ```
 
-## Built With
-- [clipboardy](https://github.com/sindresorhus/clipboardy) - Cross-platform clipboard read/write module
-- [minify](https://github.com/coderaiser/minify) - Tool to minify JS, HTML, CSS, and JSON files
-- [ignore](https://github.com/kaelzhang/node-ignore) - Module to handle .gitignore style files
-- [commander](https://github.com/tj/commander.js) - Complete solution for node.js command-line interfaces
-
-## Author
-- Lukas Schneider
-
-## License
-This project is licensed under the MIT License.
-
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 If you have any questions or run into any issues, please file an issue on the GitHub project page.
