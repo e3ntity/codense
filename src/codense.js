@@ -76,19 +76,15 @@ const traverse = async (dir, ig, baseDir = dir) => {
       output += subOutput;
       fileCount += subFileCount;
     } else {
-      let data;
-
+      let summary;
       try {
-        await summarize(filePath, baseDir);
+        summary = await summarize(filePath, baseDir);
       } catch (err) {
         console.error(`Error summarizing ${relativeFilePath}: ${err}`);
         process.exit(1);
       }
-
-      if (data) {
-        output += data;
-        fileCount += 1;
-      }
+      output += summary;
+      fileCount += 1;
     }
   }
 
