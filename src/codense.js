@@ -58,7 +58,12 @@ const addIgnoreRules = (dir, ig) => {
   if (fs.existsSync(codenseignorePath))
     rules = [...rules, ...fs.readFileSync(codenseignorePath).toString().split("\n")];
 
-  ig = ig.add(rules.map((rule) => path.join(path.relative(program.dir, dir), rule)));
+  absRules = rules
+    .filter((rule) => rule.length > 0)
+    .filter((rule) => !rule.startsWith("#"))
+    .map((rule) => path.join(path.relative(program.dir, dir), rule));
+  console.log(absRules);
+  ig = ig.add(absRules);
 
   return ig;
 };
@@ -74,6 +79,7 @@ const traverse = async (dir, ig, baseDir = dir) => {
   let output = "";
   let fileCount = 0;
 
+  console.log(dir);
   ig = addIgnoreRules(dir, ig);
 
   const files = fs.readdirSync(dir);
