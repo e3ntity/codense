@@ -1,0 +1,29 @@
+{
+  "name": "codense",
+  "version": "1.0.0",
+  "description": "A tool for summarizing the contents of a web development project.",
+  "main": "codense.js",
+  "scripts": {
+    "start": "node src/codense.js"
+  },
+  "bin": {
+    "codense": "src/codense.js"
+  },
+  "keywords": [
+    "summary",
+    "project",
+    "minify",
+    "javascript",
+    "html",
+    "css",
+    ".gitignore"
+  ],
+  "author": "Lukas Schneider",
+  "license": "MIT",
+  "dependencies": {
+    "clipboardy": "^2.3.0",
+    "minify": "^7.1.0",
+    "ignore": "^5.1.8",
+    "commander": "^7.2.0"
+  }
+}
