@@ -22,7 +22,7 @@ $ cd codense
 $ yarn
 $ yarn link
 ```
-4. To run codense from anywhere, add the `~/.yarn/bin` to your path by modifying `~/.bashrc`
+4. To run codense from anywhere, add `~/.yarn/bin` to your path by modifying `~/.bashrc`
 
 ### Usage
 Run the tool using the `codense` command followed by the directory you want to summarize. For example:
